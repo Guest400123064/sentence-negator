@@ -30,6 +30,14 @@ class G:
         from nltk import pos_tag
         
         return pos_tag(tokens, tagset="universal")
+    
+    @staticmethod
+    def sent_tokenize(text: str) -> List[str]:
+        """Tokenize a text into sentences using nltk's sentence tokenizer"""
+        
+        from nltk.tokenize import sent_tokenize
+        
+        return sent_tokenize(text)
 
     @staticmethod
     def word_tokenize(sentence: str) -> List[str]:
