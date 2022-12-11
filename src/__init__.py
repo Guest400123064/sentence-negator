@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Union, Tuple, Optional
 
 
 class G:
@@ -66,13 +66,16 @@ class G:
         return token in cls.stopwords
 
 
-def antonym(tokens: List[str], sub_all: bool = True) -> Tuple[List[str], bool]:
-    """Given a list of tokens from a SINGLE sentence, 
+def antonym(tokens: Union[str, List[str]], sub_all: bool = True) -> Tuple[List[str], bool]:
+    """Given a list of tokens from a SINGLE sentence (auto tokenize if given a string), 
         find the all (of first) words that have antonyms according 
         to nltk wordnet synsets, and replace it with their antonyms.
         An indicator is also returned to indicate if any antonyms were found."""
 
     import random
+    
+    if isinstance(tokens, str):
+        tokens = G.word_tokenize(tokens)
     
     alt = False
     ret = [t for t in tokens]
