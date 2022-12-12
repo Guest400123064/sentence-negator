@@ -11,7 +11,7 @@ class G:
     wordnet    = wordnet
     lemmatizer = WordNetLemmatizer()
     stopwords  = set(stopwords.words("english")) \
-                    | {"be", "am", "is", "are", "was", "were", "been"}
+                    | {"be", "am", "is", "are", "was", "were", "been", "first", "last"}
     
     @classmethod
     def univ_tag_to_wn_tag(cls, tag: str) -> Optional[str]:
@@ -63,7 +63,7 @@ class G:
     def is_stopword(cls, token: str) -> bool:
         """Check if a token is a stopword"""
         
-        return token in cls.stopwords
+        return token.lower() in cls.stopwords
 
 
 def antonym(tokens:     Union[str, List[str]], 
