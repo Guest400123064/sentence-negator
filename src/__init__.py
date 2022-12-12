@@ -66,7 +66,10 @@ class G:
         return token in cls.stopwords
 
 
-def antonym(tokens: Union[str, List[str]], sub_all: bool = True) -> Tuple[List[str], bool]:
+def antonym(tokens:     Union[str, List[str]], 
+            is_sub_all: bool = True, 
+            is_sample:  bool = False,
+            join_sent:  bool = True) -> Union[Tuple[List[str], bool], Tuple[str, bool]]:
     """Given a list of tokens from a SINGLE sentence (auto tokenize if given a string), 
         find the all (of first) words that have antonyms according 
         to nltk wordnet synsets, and replace it with their antonyms.
@@ -92,8 +95,15 @@ def antonym(tokens: Union[str, List[str]], sub_all: bool = True) -> Tuple[List[s
         if len(antonyms) == 0:
             continue
         else:
-            ret[i] = random.sample(antonyms, 1)[0]
             alt = True
-            if not sub_all:
+            if is_sample:
+                ret[i] = random.sample(antonyms, 1)[0]
+            else:
+                ret[i] = antonyms[0]
+
+            if not is_sub_all:
                 break
+
+    if join_sent:
+        ret = " ".join(ret)
     return ret, alt
