@@ -47,6 +47,14 @@ class G:
         
         return word_tokenize(sentence)
     
+    @staticmethod
+    def sent_tokenize(paragraph: str) -> List[str]:
+        """Tokenize a paragraph into sentences using nltk's sentence tokenizer"""
+        
+        from nltk.tokenize import sent_tokenize
+        
+        return sent_tokenize(paragraph)
+    
     @classmethod
     def lemmatize_single(cls, token: str) -> str:
         """Lemmatize the given token. Try all possible 
@@ -66,10 +74,10 @@ class G:
         return token.lower() in cls.stopwords
 
 
-def antonym(tokens:     Union[str, List[str]], 
-            is_sub_all: bool = True, 
-            is_sample:  bool = False,
-            join_sent:  bool = True) -> Union[Tuple[List[str], bool], Tuple[str, bool]]:
+def antonym(tokens:  Union[str, List[str]], 
+            sub_all: bool = False, 
+            sample:  bool = False,
+            delim:   str = " ") -> Union[List[str], str]:
     """Given a list of tokens from a SINGLE sentence (auto tokenize if given a string), 
         find the all (of first) words that have antonyms according 
         to nltk wordnet synsets, and replace it with their antonyms.
@@ -79,8 +87,7 @@ def antonym(tokens:     Union[str, List[str]],
     
     if isinstance(tokens, str):
         tokens = G.word_tokenize(tokens)
-    
-    alt = False
+
     ret = [t for t in tokens]
     for i, (token, tag) in enumerate(G.get_univ_tags(tokens)):
         if G.is_stopword(token):
@@ -95,15 +102,71 @@ def antonym(tokens:     Union[str, List[str]],
         if len(antonyms) == 0:
             continue
         else:
-            alt = True
-            if is_sample:
+            if sample:
                 ret[i] = random.sample(antonyms, 1)[0]
             else:
                 ret[i] = antonyms[0]
 
-            if not is_sub_all:
+            if not sub_all:
                 break
 
-    if join_sent:
-        ret = " ".join(ret)
-    return ret, alt
+    # Check if we need to join the tokens back together
+    if delim:
+        ret = delim.join(ret)
+    return ret
+
+
+def add_not(utterance: Union[str, List[str]], 
+            delim:     str = " ") -> Union[Tuple[List[str], bool], Tuple[str, bool]]:
+    """Add a "not" to the first verb in the utterance."""
+    
+    from pattern import en
+    from nltk import pos_tag
+    
+    if isinstance(utterance, str):
+        utterance = G.word_tokenize(utterance)
+    
+    utterance = [t for t in utterance]
+    tagged_utterance = pos_tag(utterance)
+    for token, tag in tagged_utterance:            
+        if tag in ["VB", "VBD", "VBG", "VBN", "VBP", "VBZ"]:
+            try:
+                i = utterance.index(token)
+            except:
+                continue
+
+            if tag in ["VB", "VBG", "VBN"]:
+                utterance.insert(i, "not")
+            elif tag == "VBD":
+                if token in ["was", "were"]:
+                    utterance[i] += "n't"
+                else:
+                    present = en.conjugate(token, person=1, tense=en.PRESENT)
+                    if present != token:
+                        utterance[i: (i + 1)] = ["didn't", present]
+                    else:
+                        continue
+            elif tag == "VBP":
+                if token == "am":
+                    utterance.insert(i + 1, "not")
+                elif token == "are":
+                    utterance[i] += "n't"
+                else:
+                    utterance[i: (i + 1)] = ["don't", token]
+            elif tag == "VBZ":
+                if token == "is":
+                    utterance[i] += "n't"
+                else:
+                    present = en.conjugate(token, person=1, tense=en.PRESENT)
+                    if present != token:
+                        utterance[i: (i + 1)] = ["doesn't", present]
+                    else:
+                        continue
+
+            # only need to replace one token for each utterance
+            break
+    
+    # Check if we need to join the tokens back together    
+    if delim:
+        utterance = delim.join(utterance)
+    return utterance
