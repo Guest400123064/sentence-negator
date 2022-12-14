@@ -130,6 +130,3 @@ dmypy.json
 
 # VSCode settings
 .vscode/
-
-# Don't cache datasets
-data/
